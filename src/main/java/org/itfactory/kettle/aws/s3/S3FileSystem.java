@@ -22,11 +22,7 @@
 
 package org.itfactory.kettle.aws.s3;
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -47,8 +43,10 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
 
   private AmazonS3 s3;
 
-  protected S3FileSystem( FileName rootName, FileSystemOptions fileSystemOptions ) {
+  protected S3FileSystem( FileName rootName, FileSystemOptions fileSystemOptions, AmazonS3 s3client ) {
     super( rootName, null, fileSystemOptions );
+
+    this.s3 = s3client;
   }
 
   protected FileObject createFile( AbstractFileName abstractFileName ) throws Exception {
@@ -64,14 +62,6 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
   }
 
   public AmazonS3 getS3() {
-    if ( s3 == null ) {
-      s3 = AmazonS3ClientBuilder
-        .standard()
-        .withForceGlobalBucketAccessEnabled( true )
-        .withRegion( Regions.fromName( ((S3FileName)this.getRootName()).getRegionId() ) )
-        .build();
-    }
-
     return s3;
   }
 }

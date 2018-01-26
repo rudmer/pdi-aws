@@ -35,14 +35,12 @@ import org.apache.commons.vfs2.provider.AbstractFileName;
 public class S3FileName extends AbstractFileName {
   public static final String DELIMITER = "/";
 
-  private String regionId;
   private String bucketId;
   private String bucketRelativePath;
 
-  public S3FileName( String scheme, String regionId, String bucketId, String path, FileType type ) {
+  public S3FileName( String scheme, String bucketId, String path, FileType type ) {
     super( scheme, path, type );
 
-    this.regionId = regionId;
     this.bucketId = bucketId;
 
     if ( path.length() > 1 ) {
@@ -59,27 +57,17 @@ public class S3FileName extends AbstractFileName {
     return bucketId;
   }
 
-  public String getRegionId() {
-    return regionId;
-  }
-
   public String getBucketRelativePath() {
     return bucketRelativePath;
   }
 
   public FileName createName( String absPath, FileType type ) {
-    return new S3FileName( getScheme(), regionId, bucketId, absPath, type );
+    return new S3FileName( getScheme(), bucketId, absPath, type );
   }
 
   protected void appendRootUri( StringBuilder buffer, boolean addPassword ) {
     buffer.append( getScheme() );
     buffer.append( "://" );
-
-    //TODO: HACK!
-    buffer.append( regionId );
-    buffer.append( ":" );
-
-
     buffer.append( bucketId );
   }
 }

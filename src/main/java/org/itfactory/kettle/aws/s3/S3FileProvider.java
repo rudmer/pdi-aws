@@ -22,6 +22,20 @@
 
 package org.itfactory.kettle.aws.s3;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.kms.AWSKMSClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Builder;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.AmazonS3EncryptionClientBuilder;
+import com.amazonaws.services.s3.model.CryptoConfiguration;
+import com.amazonaws.services.s3.model.CryptoMode;
+import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
 import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystem;
@@ -42,13 +56,6 @@ import java.util.Collections;
 public class S3FileProvider extends AbstractOriginatingFileProvider {
 
   public static final String SCHEME = "s3sdk";
-
-  public S3FileProvider() {
-    super();
-
-    setFileNameParser( new S3FileNameParser() );
-  }
-
   protected static final Collection<Capability> capabilities =
     Collections.unmodifiableCollection(
       Arrays.asList(
@@ -65,10 +72,66 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
           Capability.RANDOM_ACCESS_READ
         } ) );
 
+  public S3FileProvider() {
+    super();
+
+    setFileNameParser( new S3FileNameParser() );
+  }
 
   protected FileSystem doCreateFileSystem( FileName fileName, FileSystemOptions fileSystemOptions )
     throws FileSystemException {
-    return new S3FileSystem( fileName, fileSystemOptions );
+
+    S3FileSystemConfigBuilder configBuilder = S3FileSystemConfigBuilder.getInstance();
+    S3EncryptionMethod s3EncryptionMethod = configBuilder.getEncryptionMethod( fileSystemOptions ).get();
+
+    // key/secret provided through options?
+    AWSCredentialsProvider awsCredentialsProvider;
+    if ( configBuilder.getAccessKeyId( fileSystemOptions ).isPresent() ) {
+      String accessKey = configBuilder.getAccessKeyId( fileSystemOptions ).get();
+      String secretKey = configBuilder.getSecretAccessKey( fileSystemOptions ).get();
+
+      AWSCredentials cred = new BasicAWSCredentials( accessKey, secretKey );
+      awsCredentialsProvider = new AWSStaticCredentialsProvider( cred );
+    } else {
+      // use the default SDK chain resolver
+      awsCredentialsProvider = new DefaultAWSCredentialsProviderChain();
+    }
+
+    AmazonS3 s3client;
+    AmazonS3Builder builder;
+    Regions region = configBuilder.getRegion( fileSystemOptions ).get();
+
+    // specific settings for the client
+    switch ( s3EncryptionMethod ) {
+      case NONE:
+      case SERVER_SIDE:
+        builder = AmazonS3ClientBuilder
+          .standard()
+          .withRegion( region );
+        break;
+      case CLIENT_SIDE:
+        builder = AmazonS3EncryptionClientBuilder
+          .standard()
+          .withRegion( region )
+          .withKmsClient( AWSKMSClientBuilder.standard().withRegion( region ).build() )
+          .withCryptoConfiguration( new CryptoConfiguration( CryptoMode.AuthenticatedEncryption ) )
+          .withEncryptionMaterials(
+            new KMSEncryptionMaterialsProvider( configBuilder.getKmsKeyAlias( fileSystemOptions ).get() ) );
+        break;
+
+      default:
+        builder = AmazonS3ClientBuilder
+          .standard();
+        break;
+    }
+
+    // global settings for the client
+    builder.withCredentials( awsCredentialsProvider );
+    builder.withForceGlobalBucketAccessEnabled( true );
+
+    s3client = (AmazonS3) builder.build();
+
+    return new S3FileSystem( fileName, fileSystemOptions, s3client );
   }
 
   public Collection<Capability> getCapabilities() {

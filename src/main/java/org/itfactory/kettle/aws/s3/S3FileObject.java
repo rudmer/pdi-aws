@@ -154,7 +154,7 @@ public class S3FileObject extends AbstractFileObject {
 
   @Override
   protected OutputStream doGetOutputStream( boolean bAppend ) throws Exception {
-    return new S3PipedOutputStream( fileSystem.getS3(), bucketName, key );
+    return new S3PipedOutputStream( this.fileSystem, bucketName, key );
   }
 
   protected FileType doGetType() throws Exception {

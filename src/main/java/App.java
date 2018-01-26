@@ -20,28 +20,36 @@
  *
  ******************************************************************************/
 
+import com.amazonaws.regions.Regions;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.Selectors;
 import org.apache.commons.vfs2.VFS;
+import org.itfactory.kettle.aws.s3.S3EncryptionMethod;
+import org.itfactory.kettle.aws.s3.S3FileSystemConfigBuilder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 
 public class App {
   public static void main( String[] args ) {
     try {
       FileSystemManager fsManager = VFS.getManager();
 
-      FileObject fileObject = fsManager.resolveFile( "s3sdk://cn-north-1:zyy/accessKeys.csv" );
+      FileSystemOptions fsOpts = new FileSystemOptions();
+      S3FileSystemConfigBuilder configBuilder = S3FileSystemConfigBuilder.getInstance();
+      configBuilder.setEncryptionMethod( fsOpts, S3EncryptionMethod.SERVER_SIDE );
+      configBuilder.setKmsKeyAlias( fsOpts, "alias/test-key" );
+      configBuilder.setRegion( fsOpts, Regions.EU_WEST_2 );
+
+      FileObject fileObject;
+
+      /*fileObject = fsManager.resolveFile( "s3sdk://zyy/accessKeys.csv" , fsOpts);
 
       System.out.println( fileObject.exists() );
 
-      /*fileObject = fsManager.resolveFile( "s3sdk://itxpander-bucket-1/test-folder1" );
+      fileObject = fsManager.resolveFile( "s3sdk://itxpander-bucket-1/test-folder1" );
 
       for (FileObject f : fileObject.getChildren()) {
         System.out.println(f.toString() + " type: " + f.getType());
@@ -52,15 +60,24 @@ public class App {
       fileObject.createFolder();
       fileObject.delete();
 
-      fileObject = fsManager.resolveFile( "s3sdk://itxpander-bucket-1/test-folder1/jd-gui-1.4.0_vfs.jar" );
+      */
+      fileObject =
+        fsManager.resolveFile( "s3sdk://itxpander-bucket-1/test-folder1/XPBIU-HSBCNDAFAQ-240118-1603-84.pdf", fsOpts );
 
-      FileObject orig = fsManager.resolveFile( "file:///Users/puls3/Downloads/jd-gui-1.4.0.jar" );
+      FileObject orig = fsManager.resolveFile( "file:///home/puls3/Downloads/XPBIU-HSBCNDAFAQ-240118-1603-84.pdf" );
 
       fileObject.copyFrom( orig, Selectors.SELECT_SELF );
 
       fileObject.close();
 
-      FileObject newFile = fsManager.resolveFile( "s3sdk://itxpander-bucket-1/test-folder1/sales_data.csv" );
+      //FileObject decr = fsManager.resolveFile( "file:///home/puls3/Downloads/XPBIU-HSBCNDAFAQ-240118-1603-84-dec
+      // .pdf" );
+
+      //decr.copyFrom( fileObject, Selectors.SELECT_SELF );
+
+      //decr.close();
+
+      /*FileObject newFile = fsManager.resolveFile( "s3sdk://itxpander-bucket-1/test-folder1/sales_data.csv" );
 
       fileObject.moveTo( newFile );*/
 

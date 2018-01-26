@@ -22,8 +22,6 @@
 
 package org.itfactory.kettle.aws.s3;
 
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -51,20 +49,8 @@ public class S3FileNameParser extends AbstractFileNameParser {
     FileType fileType = UriParser.normalisePath( name );
 
     // Extract bucket name
-    final String bucket = UriParser.extractFirstElement( name );
+    final String bucketName = UriParser.extractFirstElement( name );
 
-    String[] bucketComponents = bucket.split( ":" );
-
-    String bucketName = "";
-    String regionId = "";
-    if(bucketComponents.length > 1) {
-      regionId = bucketComponents[0];
-      bucketName = bucketComponents[1];
-    } else {
-      regionId = Regions.DEFAULT_REGION.getName();
-      bucketName = bucketComponents[0];
-    }
-
-    return new S3FileName( scheme, regionId, bucketName, name.toString(), fileType );
+    return new S3FileName( scheme, bucketName, name.toString(), fileType );
   }
 }
