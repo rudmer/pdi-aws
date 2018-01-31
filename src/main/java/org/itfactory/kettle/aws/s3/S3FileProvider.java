@@ -39,6 +39,7 @@ import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
 import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystem;
+import org.apache.commons.vfs2.FileSystemConfigBuilder;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
@@ -136,5 +137,9 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
 
   public Collection<Capability> getCapabilities() {
     return capabilities;
+  }
+
+  @Override public FileSystemConfigBuilder getConfigBuilder() {
+    return S3FileSystemConfigBuilder.getInstance();
   }
 }

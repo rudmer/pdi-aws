@@ -41,7 +41,7 @@ public class App {
       S3FileSystemConfigBuilder configBuilder = S3FileSystemConfigBuilder.getInstance();
       configBuilder.setEncryptionMethod( fsOpts, S3EncryptionMethod.SERVER_SIDE );
       configBuilder.setKmsKeyAlias( fsOpts, "alias/test-key" );
-      configBuilder.setRegion( fsOpts, Regions.EU_WEST_2 );
+      configBuilder.setRegion( fsOpts, "eu-west-2" );
 
       FileObject fileObject;
 

@@ -78,12 +78,15 @@ public class S3FileSystemConfigBuilder extends FileSystemConfigBuilder {
     return of( Regions.fromName( r ) );
   }
 
-  public void setRegion( FileSystemOptions opts, Regions region ) {
+  public void setRegion( FileSystemOptions opts, String region ) {
     if ( getEndpoint( opts ).isPresent() ) {
       throw new IllegalArgumentException( "Cannot set both Region and Endpoint" );
     }
 
-    setParam( opts, REGION, requireNonNull( region ).getName() );
+    // check if the region is valid, will throw an IAE
+    Regions r = Regions.fromName( requireNonNull( region ) );
+
+    setParam( opts, REGION, region );
   }
 
   public Optional<String> getAccessKeyId( FileSystemOptions opts ) {
