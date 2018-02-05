@@ -27,6 +27,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
@@ -85,8 +86,20 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
     S3FileSystemConfigBuilder configBuilder = S3FileSystemConfigBuilder.getInstance();
     S3EncryptionMethod s3EncryptionMethod = configBuilder.getEncryptionMethod( fileSystemOptions ).get();
 
-    // key/secret provided through options?
+
     AWSCredentialsProvider awsCredentialsProvider;
+
+    // load profile by name?
+    if ( configBuilder.getProfile( fileSystemOptions ).isPresent() ) {
+      try {
+        awsCredentialsProvider = new ProfileCredentialsProvider( configBuilder.getProfile( fileSystemOptions ).get() );
+      } catch ( IllegalArgumentException iae ) {
+        // cannot find profile
+        throw new FileSystemException( iae );
+      }
+    }
+
+    // key/secret provided through options?
     if ( configBuilder.getAccessKeyId( fileSystemOptions ).isPresent() ) {
       String accessKey = configBuilder.getAccessKeyId( fileSystemOptions ).get();
       String secretKey = configBuilder.getSecretAccessKey( fileSystemOptions ).get();

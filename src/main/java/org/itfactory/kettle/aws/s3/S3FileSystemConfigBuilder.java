@@ -39,6 +39,7 @@ import static java.util.Optional.ofNullable;
  * @since 25-01-2018
  */
 public class S3FileSystemConfigBuilder extends FileSystemConfigBuilder {
+  private static final String PROFILE = "profile";
   private static final String ENDPOINT = "endpoint";
   private static final String REGION = "region";
   private static final String ACCESS_KEY_ID = "accessKeyId";
@@ -95,6 +96,19 @@ public class S3FileSystemConfigBuilder extends FileSystemConfigBuilder {
 
   public void setAccessKeyId( FileSystemOptions opts, String accessKeyId ) {
     setParam( opts, ACCESS_KEY_ID, accessKeyId );
+  }
+
+  public Optional<String> getProfile( FileSystemOptions opts ) {
+    return ofNullable( getString( opts, PROFILE ) );
+  }
+
+  public void setProfile( FileSystemOptions opts, String profile ) {
+    if ( getAccessKeyId( opts ).isPresent() ) {
+      throw new IllegalArgumentException(
+        "Cannot set both profile and static credentials (accessKeyId and secretAccessKey)" );
+    }
+
+    setParam( opts, PROFILE, profile );
   }
 
   public Optional<String> getSecretAccessKey( FileSystemOptions opts ) {
