@@ -2,6 +2,10 @@
 
 This is an AWS S3 vfs driver built using the latest AWS SDK.
 
+## Installation
+
+Simply unzip the release zip onto PDI plugins folder and restart the Spoon UI.
+
 ## Usage
 
 ### Filesystem options
