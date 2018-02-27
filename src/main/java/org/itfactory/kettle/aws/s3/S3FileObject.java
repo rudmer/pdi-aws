@@ -55,7 +55,6 @@ public class S3FileObject extends AbstractFileObject {
 
   private S3FileSystem fileSystem;
   private S3Object s3Object;
-  private FileType fileType;
   private String bucketName;
   private String key;
 
@@ -93,17 +92,18 @@ public class S3FileObject extends AbstractFileObject {
   }
 
   @Override protected void doAttach() throws Exception {
-    this.fileType = FileType.IMAGINARY;
+    injectType( FileType.IMAGINARY );
 
     if ( isRootBucket() ) {
       // cannot attach to root bucket
+      injectType( FileType.FOLDER );
       return;
     }
 
     // 1. Is it an existing file?
     try {
       s3Object = getS3Object();
-      this.fileType = getName().getType(); // if this worked then the automatically detected type is right
+      injectType( getName().getType() ); // if this worked then the automatically detected type is right
     } catch ( AmazonS3Exception e ) {
       // S3 object doesn't exist
 
@@ -111,7 +111,7 @@ public class S3FileObject extends AbstractFileObject {
       String keyWithDelimiter = key + DELIMITER;
       try {
         s3Object = getS3Object( keyWithDelimiter );
-        this.fileType = FileType.FOLDER;
+        injectType( FileType.FOLDER );
         this.key = keyWithDelimiter;
       } catch ( AmazonS3Exception e2 ) {
         // file doesn't exist or connection error, printing exception for reference
@@ -158,7 +158,7 @@ public class S3FileObject extends AbstractFileObject {
   }
 
   protected FileType doGetType() throws Exception {
-    return this.fileType;
+    return getType();
   }
 
   protected String[] doListChildren() throws Exception {

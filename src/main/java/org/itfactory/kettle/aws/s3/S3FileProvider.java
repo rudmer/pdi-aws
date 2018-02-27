@@ -86,7 +86,6 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
     S3FileSystemConfigBuilder configBuilder = S3FileSystemConfigBuilder.getInstance();
     S3EncryptionMethod s3EncryptionMethod = configBuilder.getEncryptionMethod( fileSystemOptions ).get();
 
-
     AWSCredentialsProvider awsCredentialsProvider;
 
     // load profile by name?
