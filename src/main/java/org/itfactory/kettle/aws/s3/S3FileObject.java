@@ -114,8 +114,17 @@ public class S3FileObject extends AbstractFileObject {
         injectType( FileType.FOLDER );
         this.key = keyWithDelimiter;
       } catch ( AmazonS3Exception e2 ) {
-        // file doesn't exist or connection error, printing exception for reference
-        e2.printStackTrace();
+        //TODO: there must be a better way to do this...
+        String errorCode = e2.getErrorCode();
+
+        // confirms key doesn't exist but connection okay
+        if ( errorCode.equals( "NoSuchKey" ) ) {
+          // move on
+        } else {
+          // bubbling up other connection errors
+          e2.printStackTrace(); // make sure this gets printed for the user
+          throw new FileSystemException( "vfs.provider/get-type.error", this.key );
+        }
       }
     }
   }
