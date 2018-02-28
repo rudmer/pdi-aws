@@ -1,0 +1,39 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "taskName": "verify",
+      "type": "shell",
+      "command": "mvn -B verify -Dcentral -e",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "taskName": "verify-offline",
+      "type": "shell",
+      "command": "mvn -B verify -Dcentral -e -o",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "taskName": "test",
+      "type": "shell",
+      "command": "mvn -B test -Dcentral",
+      "group": "test"
+    },
+    {
+      "taskname": "run-local-dynamodb-inmemory",
+      "type": "shell",
+      "command": "java -Djava.library.path=~/Downloads/DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory",
+      "group": "test"
+    },
+    {
+      "taskname": "run-local-dynamodb",
+      "type": "shell",
+      "command": "java -Djava.library.path=~/Downloads/DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -dbPath ./data/",
+      "group": "test"
+    }
+  ]
+}

@@ -1,55 +1,29 @@
-# Amazon S3 Commons VFS driver
+# AWS Addons for Pentaho Data Integration
 
-This is an AWS S3 vfs driver built using the latest AWS SDK.
+This repository holds various add-on functionality to enable Pentaho Data Integration (PDI) to better
+work with Amazon Web Services (AWS).
 
-## Installation
+## Current contents
 
-Simply unzip the release zip onto PDI plugins folder and restart the Spoon UI.
+- [AWS S3 VFS Driver](documentation/aws-s3-vfs-driver.md) - So any PDI step can store and read files to/from AWS S3 (Simple Storage Service)
+- [AWS DynamoDB Steps](documentation/aws-dynamodb-steps.md) - So a PDI transformation can connect to DynamoDB and save data to it, or load data from it
 
-## Usage
+## Installation and usage
 
-### Filesystem options
+Easiest way is to download the binary release.
 
-All the below are optional, when they are not provided for authentication, the VFS driver uses the AWS SDK default credentials chain
+- Fetch the latest release from here: https://github.com/Pentaho-SE-EMEA-APAC/pdi-aws/releases 
+- Unzip the zip file
+- Take the 'pdi-aws' folder and drop in to PENTAHO_HOME/design-tools/data-integration/plugins
+- Download the AWS DynamoDB Java SDK zip file from here: http://TODO.com/
+- Extract the contents of the zip file
+- Copy the lib/*.jar files - to the plugins/pdi-aws/lib folder (create this subfolder if it does not exist)
+- Restart PDI/Spoon
+- You will find the AWS DynamoDB steps under the 'Big Data' folder. The AWS S3 VFS driver will be automatically enabled.
 
-Option | Description | Default
------------- | ------------- | -------------
-endpoint | customize s3 endpoint | N/A 
-region | region to connect to | Regions.DEFAULT_REGION
-accessKeyId | an explicit reference to the S3 access key | N/A 
-secretAccessKey | an explicit reference to the S3 secret key | N/A
-encryptionMethod | One of: NONE, CLIENT_SIDE, SERVER_SIDE | NONE
-kms.keyAlias | the name of an AWS KMS key to use for encryption | N/A
+## Samples
 
-#### Using the filesystem options via PDI
-
-Using kettle.properties
-```
-vfs.s3sdk.endpoint=
-vfs.s3sdk.region=
-vfs.s3sdk.accessKeyId=
-vfs.s3sdk.secretAccessKey=
-vfs.s3sdk.encryptionMethod=
-vfs.s3sdk.kms.keyAlias=
-```
-
-### Authentication
-
-All the available AWS SDK means to provide credentials are available to use with this vfs driver.
-
-#### EXAMPLE: Using .aws/credentials
-
-```
-[default]
-aws_access_key_id=
-aws_secret_access_key=
-```
-
-### VFS URI
-
-```
-s3sdk://bucket/path/to/file.txt
-```
+Sample transforms are available in the ZIP release, within the samples folder.
 
 ## License and Copyright
 
