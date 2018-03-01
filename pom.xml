@@ -4,7 +4,7 @@
 
   <groupId>org.itfactory.kettle</groupId>
   <artifactId>aws-plugins</artifactId>
-  <version>0.0.4</version>
+  <version>0.0.5</version>
   <packaging>jar</packaging>
 
   <name>aws-plugins</name>
@@ -12,7 +12,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <pentaho.kettle.version>6.1.0.6-242</pentaho.kettle.version>
+    <pentaho.kettle.version>8.0-SNAPSHOT</pentaho.kettle.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
@@ -45,6 +45,18 @@
     </plugins>
   </build>
 
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-bom</artifactId>
+      <version>1.11.106</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -71,11 +83,13 @@
       <scope>provided</scope>
     </dependency>
 
+<!-->
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
       <version>1.11.269</version>
     </dependency>
+    -->
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
@@ -87,11 +101,45 @@
       <version>1.58</version>
     </dependency>
 
+    <!-- Local AWS DynamoDB (in memory, data lost when shutdown) for testing only -->
+    <!--
+    <dependency>
+       <groupId>com.amazonaws</groupId>
+       <artifactId>DynamoDBLocal</artifactId>
+       <version>2.0</version>
+    </dependency>
+    -->
+
+    <!-- DynamoDB live on AWS -->
+    <!--
+    <dependency>
+       <groupId>com.amazonaws</groupId>
+       <artifactId>aws-java-sdk-dynamodb</artifactId>
+       <version>2.0</version>
+    </dependency>
+    -->
+
+    
+  <dependency>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>aws-java-sdk-s3</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>aws-java-sdk-dynamodb</artifactId>
+  </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.12</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse</groupId>
+      <artifactId>jface</artifactId>
+      <version>3.3.0-I20070606-0010</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -100,5 +148,15 @@
       <id>pentaho</id>
       <url>http://ivy-nexus.pentaho.org/content/groups/omni</url>
     </repository>
+    
+    <!-- Local AWS DynamoDB (in memory, data lost when shutdown) for testing only -->
+    <!--
+    <repository>
+       <id>dynamodb-local-frankfurt</id>
+       <name>DynamoDB Local Release Repository</name>
+       <url>https://s3.eu-central-1.amazonaws.com/dynamodb-local-frankfurt/release </url>
+    </repository>
+    -->
+
   </repositories>
 </project>
