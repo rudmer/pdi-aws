@@ -43,9 +43,14 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.model.PutItemResult;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
+import com.amazonaws.services.dynamodbv2.model.WriteRequest;
+import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * DynamoDB Document Output Step
@@ -82,7 +87,8 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
       logRowlevel("Processing last DynamoDB row");
       // no more input to be expected...
 
-      // TODO any connection cleanup
+      // any connection cleanup
+      completeBatch();
 
       logRowlevel("Processing last DynamoDB row completed");
       setOutputDone();
@@ -134,7 +140,16 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
 
 
     // create request
-    Table table = data.client.getTable((String)r[data.tableFieldId]);
+    String thisTableName = (String)r[data.tableFieldId];
+    if (!data.lastTableName.equals(thisTableName) || data.recordsInBatch >= data.maxRecordsPerBatch) {
+      // flush batch now, if records > 0
+      completeBatch();
+      data.recordsInBatch = 0; // reset counter
+      // reset batch
+      //data.lastTable = data.client.getTable(thisTableName);
+      data.lastTableName = thisTableName;
+      data.batcher = new TableWriteItems(thisTableName);
+    }
     final Map<String, Object> infoMap = new HashMap<String, Object>();
 
     // get hold of all fields, other than tableField, and add to save request as a field of type (String by default)
@@ -143,7 +158,7 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
     Object pkValue = "";
     boolean first = true;
     for (int ni = 0;ni < names.length;ni++) {
-      if (ni != data.tableFieldId) {
+      if (ni != data.tableFieldId) { // ignore the data item that holds this table's name
         String name = names[ni];
         Object value = r[data.inputRowMeta.indexOfValue(name)];
         logRowlevel("  Adding record key: " + name + " = " + value);
@@ -156,13 +171,18 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
       }
     }
     try {
-      PutItemOutcome outcome =
-        table.putItem(new Item().withPrimaryKey(pkName, pkValue).withMap("info", infoMap));
+      // batched write code
+      data.batcher.addItemToPut(new Item().withPrimaryKey(pkName, pkValue).withMap("info", infoMap));
+      data.recordsInBatch++;
+      // the following was for a single unbatched write
+      /*
+      PutItemOutcome outcome = table.putItem(new Item().withPrimaryKey(pkName, pkValue).withMap("info", infoMap));
 
       PutItemResult result = outcome.getPutItemResult();
       //logDebug(result);
+      */
     } catch (Exception e) {
-      logError("Error saving to DynamoDB",e);
+      logError("Error saving to DynamoDB", e);
     }
     
     // Also copy rows to output
@@ -177,6 +197,51 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
     return true;
   }
 
+  private void completeBatch() {
+    if (null != data.batcher && data.recordsInBatch > 0) {
+      try {
+        BatchWriteItemOutcome outcome = data.client.batchWriteItem(data.batcher);
+    
+        do {
+
+          // Check for unprocessed keys which could happen if you exceed
+          // provisioned throughput
+
+          Map<String, List<WriteRequest>> unprocessedItems = outcome.getUnprocessedItems();
+
+          if (outcome.getUnprocessedItems().size() == 0) {
+            System.out.println("No unprocessed items found");
+          } else {
+            System.out.println("Retrieving the unprocessed items");
+            // retry
+            outcome = data.client.batchWriteItemUnprocessed(unprocessedItems);
+            Map<String, List<WriteRequest>> items = outcome.getUnprocessedItems();
+            for (Map.Entry<String,String> httpEntry : 
+              outcome.getBatchWriteItemResult().getSdkHttpMetadata().getHttpHeaders().entrySet()) {
+              String header = httpEntry.getKey();
+              String value = httpEntry.getValue();
+              logRowlevel("HTTP response header '" + header + "' = '" + value + "'");
+            }
+            
+
+            //now check
+
+            for (Map.Entry<String, List<WriteRequest>> entry : items.entrySet()) {
+              String tableName = entry.getKey();
+              for (WriteRequest request : entry.getValue()) {
+                Map<String, AttributeValue> key = request.getPutRequest().getItem();
+                logError("Could not save record in table '" + tableName + "' with key '" + key + "'");
+              }
+            } // end for
+          }
+
+        } while (outcome.getUnprocessedItems().size() > 0);
+
+      } catch (Exception e) {
+        logError("Error saving to DynamoDB", e);
+      }
+    }
+  }
 
   /**
    * Initialises the data for the step (meta data and runtime data)

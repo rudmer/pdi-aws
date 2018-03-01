@@ -27,6 +27,8 @@ import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 
 /**
  * Runtime transient data container for the PDI BigQuery stream step
@@ -43,8 +45,14 @@ public class DynamoDBOutputData extends BaseStepData implements StepDataInterfac
   //public DataMovementManager dmm = null;
   //public WriteBatcher batcher = null;
 
-  public int tableFieldId = -1;
+  public TableWriteItems batcher = null;
+  //public Table lastTable = null;
 
+  public int tableFieldId = -1;
+  public int recordsInBatch = 0;
+  public int maxRecordsPerBatch = 25; // TODO set this from somewhere else, not hardcoded - 25 max for AWS DynamoDB batch write
+  public String lastTableName = "";
+ 
   /**
    * Default constructor
    */
