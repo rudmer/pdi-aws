@@ -55,7 +55,7 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 @Step( id = "DynamoDBOutput",
-image = "DynamoDB_output.svg",
+image = "DynamoDBOutput.png",
  i18nPackageName = "org.pentaho.kettle.steps.DynamoDBoutput", name = "DynamoDBOutput.Name",
  description = "DynamoDBOutput.Description",
  categoryDescription = "BaseStep.Category.BigData" )

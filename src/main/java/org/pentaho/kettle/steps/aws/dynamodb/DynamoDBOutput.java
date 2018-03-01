@@ -51,6 +51,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Hashtable;
 
 /**
  * DynamoDB Document Output Step
@@ -104,6 +105,23 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
       data.outputRowMeta = getInputRowMeta().clone();
       meta.getFields( data.outputRowMeta, getStepname(), null, null, this, repository, this.metaStore );
 
+      String[] names = data.inputRowMeta.getFieldNames();
+      data.fieldTypes = new Hashtable<String, String>();
+
+      for (int ni = 0; ni < names.length; ni++) {
+        if (ni != data.tableFieldId) { // ignore the data item that holds this table's name
+          String name = names[ni];
+          // now determine the type and cache the answer in fieldTypes
+          String typeDesc = data.inputRowMeta.getValueMeta(data.inputRowMeta.indexOfValue(name)).getTypeDesc();
+          /*if ("String".equals(typeDesc)) {
+            logRowlevel("Got String: " + name);
+          } else {
+            logRowlevel("Got Other: " + name + " of type " + typeDesc);
+          }*/
+          data.fieldTypes.put(name, typeDesc);
+        } // endif
+      } // endfor
+
       String tableField = meta.getTableField();
       if (null != tableField) {
         data.tableFieldId = data.inputRowMeta.indexOfValue(tableField);
@@ -112,7 +130,7 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
 
 
       // create connection
-      // TODO get connection to dynamodb
+      // get connection to dynamodb
       try {
 
         //data.client = DynamoDBConnectionFactory.create(
@@ -122,7 +140,7 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
         //  (String) meta.getDatabaseMeta().getAttributes().get(DynamoDBDatabaseMeta.ATTRIBUTE_USERNAME),
         //  (String) meta.getDatabaseMeta().getAttributes().get(DynamoDBDatabaseMeta.ATTRIBUTE_PASSWORD)
         //);
-        data.client = ((DynamoDBDatabaseMeta)meta.getDatabaseMeta().getDatabaseInterface()).getConnection();
+        data.client = new DynamoDB(((DynamoDBDatabaseMeta)meta.getDatabaseMeta().getDatabaseInterface()).getConnection());
       } catch (Exception e) {
         logError(BaseMessages.getString(PKG, "DynamoDBOutput.Log.CannotConnect"),e);
       }
@@ -150,13 +168,15 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
       data.lastTableName = thisTableName;
       data.batcher = new TableWriteItems(thisTableName);
     }
-    final Map<String, Object> infoMap = new HashMap<String, Object>();
+    //final Map<String, Object> infoMap = new HashMap<String, Object>();
+    
 
     // get hold of all fields, other than tableField, and add to save request as a field of type (String by default)
     String[] names = data.inputRowMeta.getFieldNames();
     String pkName = "";
     Object pkValue = "";
     boolean first = true;
+    Item item = null; // safe
     for (int ni = 0;ni < names.length;ni++) {
       if (ni != data.tableFieldId) { // ignore the data item that holds this table's name
         String name = names[ni];
@@ -166,13 +186,31 @@ public class DynamoDBOutput extends BaseStep implements StepInterface {
           first = false;
           pkName = name;
           pkValue = value;
+          item = new Item().withPrimaryKey(pkName, pkValue);
         }
-        infoMap.put(name,value);
-      }
-    }
+        //infoMap.put(name,value);
+        // get type and switch
+        
+        int fieldId = data.inputRowMeta.indexOfValue(name);
+        if (-1 != fieldId) { // should be valid, but just in case
+          // switch on type of field to determine what to get from dynamodb
+          String type = data.fieldTypes.get(name);
+          if ("String".equals(type)) {
+            item.withString(name,(String)value);
+          } else if ("Number".equals(type)) {
+            item.withNumber(name, (Double)value);
+          } else if ("Integer".equals(type)) {
+            item.withNumber(name,(Long)value);
+            // TODO binary, date, etc
+          } else {
+            // UH OH
+          }
+        } // end field id if
+      } // end has table field if
+    } // end field names for
     try {
       // batched write code
-      data.batcher.addItemToPut(new Item().withPrimaryKey(pkName, pkValue).withMap("info", infoMap));
+      data.batcher.addItemToPut(item);
       data.recordsInBatch++;
       // the following was for a single unbatched write
       /*

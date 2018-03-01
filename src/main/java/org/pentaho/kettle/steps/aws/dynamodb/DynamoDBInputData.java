@@ -26,7 +26,7 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 
 /**
  * Runtime transient data container for the PDI BigQuery stream step
@@ -39,7 +39,7 @@ public class DynamoDBInputData extends BaseStepData implements StepDataInterface
   public RowMetaInterface inputRowMeta;
 
   // in flight configuration objects here (E.g. batch handler
-  public DynamoDB client = null;
+  public AmazonDynamoDB client = null;
   // TODO hold reference to batching query or top level query class
 
   public int tableFieldId = -1;

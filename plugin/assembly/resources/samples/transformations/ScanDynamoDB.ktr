@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transformation>
   <info>
-    <name>LoadIntoDynamoDB</name>
+    <name>ScanDynamoDB</name>
     <description/>
     <extended_description/>
     <trans_version/>
@@ -427,20 +427,19 @@
     <clusterschemas>
     </clusterschemas>
     <created_user>-</created_user>
-    <created_date>2018/02/28 19:47:20.420</created_date>
+    <created_date>2018/03/01 11:28:37.056</created_date>
     <modified_user>-</modified_user>
-    <modified_date>2018/02/28 19:47:20.420</modified_date>
+    <modified_date>2018/03/01 11:28:37.056</modified_date>
     <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
     <notepad>
-      <note>Generates 1000 items and adds them to an existing AWS DynamoDB table.
-Note: Will generate errors if you run often using the Free Tier of DynamoDB due to Write Capacity Unit limits.</note>
-      <xloc>48</xloc>
-      <yloc>128</yloc>
-      <width>732</width>
-      <heigth>50</heigth>
+      <note>Scans an AWS DynamoDB Table and extracts the specified fields for each record found.</note>
+      <xloc>16</xloc>
+      <yloc>112</yloc>
+      <width>586</width>
+      <heigth>30</heigth>
       <fontname>Segoe UI</fontname>
       <fontsize>9</fontsize>
       <fontbold>N</fontbold>
@@ -458,11 +457,11 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
     </notepad>
   </notepads>
   <connection>
-    <name>DynamoDB</name>
+    <name>dynamodb</name>
     <server>dynamodb.eu-west-1.amazonaws.com</server>
     <type>AWSDynamoDB</type>
     <access>Plugin</access>
-    <database>mydb</database>
+    <database>dynamodb</database>
     <port>443</port>
     <username>AKIAJESLAN5RVSLYVP4A</username>
     <password>Encrypted 31775146414865664a797058466654325862725158647077ebd39db05895b1b6b33c9c68d997b9f7</password>
@@ -483,28 +482,13 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
   <order>
     <hop>
       <from>Generate Rows</from>
-      <to>Create Item ID</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Create Item ID</from>
-      <to>Create Item Name</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Create Item Name</from>
-      <to>Select values</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Select values</from>
-      <to>AWS DynamoDB Output</to>
+      <to>AWS DynamoDB Input</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <step>
-    <name>AWS DynamoDB Output</name>
-    <type>DynamoDBOutput</type>
+    <name>AWS DynamoDB Input</name>
+    <type>DynamoDBInput</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -513,7 +497,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <connection>DynamoDB</connection>
+    <connection>dynamodb</connection>
     <table>TableName</table>
     <cluster_schema/>
     <remotesteps>
@@ -523,74 +507,8 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
       </output>
     </remotesteps>
     <GUI>
-      <xloc>768</xloc>
-      <yloc>32</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Create Item ID</name>
-    <type>Sequence</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <valuename>ItemCount</valuename>
-    <use_database>N</use_database>
-    <connection>DynamoDB</connection>
-    <schema/>
-    <seqname>SEQ_</seqname>
-    <use_counter>Y</use_counter>
-    <counter_name/>
-    <start_at>1</start_at>
-    <increment_by>1</increment_by>
-    <max_value>999999999</max_value>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>192</xloc>
-      <yloc>32</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Create Item Name</name>
-    <type>Janino</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <formula>
-      <field_name>ItemName</field_name>
-      <formula_string>ItemNameBase + " C " + ItemCount</formula_string>
-      <value_type>String</value_type>
-      <value_length>-1</value_length>
-      <value_precision>-1</value_precision>
-      <replace_field/>
-    </formula>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>400</xloc>
-      <yloc>32</yloc>
+      <xloc>352</xloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -607,13 +525,13 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
     </partitioning>
     <fields>
       <field>
-        <name>ItemNameBase</name>
+        <name>ItemName</name>
         <type>String</type>
         <format/>
         <currency/>
         <decimal/>
         <group/>
-        <nullif>Wibble Vest</nullif>
+        <nullif/>
         <length>-1</length>
         <precision>-1</precision>
         <set_empty_string>N</set_empty_string>
@@ -625,7 +543,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
         <currency/>
         <decimal/>
         <group/>
-        <nullif>1.23</nullif>
+        <nullif/>
         <length>-1</length>
         <precision>-1</precision>
         <set_empty_string>N</set_empty_string>
@@ -637,7 +555,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
         <currency/>
         <decimal/>
         <group/>
-        <nullif>2</nullif>
+        <nullif/>
         <length>-1</length>
         <precision>-1</precision>
         <set_empty_string>N</set_empty_string>
@@ -655,7 +573,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
         <set_empty_string>N</set_empty_string>
       </field>
     </fields>
-    <limit>1000</limit>
+    <limit>1</limit>
     <never_ending>N</never_ending>
     <interval_in_ms>5000</interval_in_ms>
     <row_time_field>now</row_time_field>
@@ -668,47 +586,8 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
       </output>
     </remotesteps>
     <GUI>
-      <xloc>48</xloc>
-      <yloc>32</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Select values</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>ItemName</name>
-      </field>
-      <field>
-        <name>Cost</name>
-      </field>
-      <field>
-        <name>Quantity</name>
-      </field>
-      <field>
-        <name>TableName</name>
-      </field>
-      <select_unspecified>N</select_unspecified>
-    </fields>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>576</xloc>
-      <yloc>32</yloc>
+      <xloc>112</xloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -717,9 +596,4 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
   <slave-step-copy-partition-distribution>
   </slave-step-copy-partition-distribution>
   <slave_transformation>N</slave_transformation>
-  <attributes>
-    <group>
-      <name>explorerState</name>
-    </group>
-  </attributes>
 </transformation>

@@ -40,8 +40,19 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 
-import java.io.ByteArrayOutputStream;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Hashtable;
+
+import java.nio.ByteBuffer;
 
 /**
  * DynamoDB Document Input Step
@@ -127,14 +138,95 @@ public class DynamoDBInput extends BaseStep implements StepInterface {
         data.tableFieldId = data.inputRowMeta.indexOfValue(tableField);
       }
 
+      // create connection
+      // get connection to dynamodb
       try {
-
         data.client = ((DynamoDBDatabaseMeta) meta.getDatabaseMeta().getDatabaseInterface()).getConnection();
       } catch (Exception e) {
-        logError(BaseMessages.getString(PKG, "DynamoDBInput.Log.CannotConnect"), e);
+        logError(BaseMessages.getString(PKG, "DynamoDBOutput.Log.CannotConnect"), e);
       }
 
-      // TODO create some sort of batching manager here, or top level class used to load documents
+      // create some sort of batching manager here, or top level class used to load documents
+      
+      String thisTableName = (String) r[data.tableFieldId];
+
+      // loop through field names present, except table field, and create projection expression
+      String fieldNamesExpression = "info, ";
+      String[] names = data.inputRowMeta.getFieldNames();
+      Hashtable<String,String> fieldTypes = new Hashtable<String,String>();
+
+      boolean first = true;
+      for (int ni = 0;ni < names.length;ni++) {
+        if (ni != data.tableFieldId) { // ignore the data item that holds this table's name
+          String name = names[ni];
+          if (first) {
+            first = false;
+          } else {
+            fieldNamesExpression += ", ";
+          }
+          fieldNamesExpression += name;
+          // now determine the type and cache the answer in fieldTypes
+          String typeDesc = data.inputRowMeta.getValueMeta(data.inputRowMeta.indexOfValue(name)).getTypeDesc();
+          /*if ("String".equals(typeDesc)) {
+            logRowlevel("Got String: " + name);
+          } else {
+            logRowlevel("Got Other: " + name + " of type " + typeDesc);
+          }*/
+          fieldTypes.put(name,typeDesc);
+        } // endif
+      } // endfor
+      
+
+      Map<String, AttributeValue> lastKeyEvaluated = null;
+      do {
+        ScanRequest scanRequest = new ScanRequest().withTableName(thisTableName).withLimit(25)
+            .withExclusiveStartKey(lastKeyEvaluated).withProjectionExpression(fieldNamesExpression);
+
+        Object[] outputRowData;
+        ScanResult result = data.client.scan(scanRequest);
+        for (Map<String, AttributeValue> item : result.getItems()) {
+          // extract keys and place in to a new row in PDI
+          outputRowData = RowDataUtil.createResizedCopy(r, data.outputRowMeta.size()); //.outputRowMeta.size());
+          for (String key : item.keySet()) { 
+            int fieldId = data.inputRowMeta.indexOfValue(key);
+            if (-1 != fieldId) {
+              // switch on type of field to determine what to get from dynamodb
+              String type = fieldTypes.get(key);
+              if ("String".equals(type)) {
+                outputRowData[fieldId] = item.get(key).getS(); 
+              } else if ("Number".equals(type)) {
+                outputRowData[fieldId] = new Double(Double.parseDouble(item.get(key).getN()));
+              } else if ("Integer".equals(type)) {
+                outputRowData[fieldId] = new Long(Long.parseLong(item.get(key).getN()));
+              } else if ("Boolean".equals(type)) {
+                outputRowData[fieldId] = item.get(key).getBOOL();
+              } else if ("Binary".equals(type)) {
+                ByteBuffer buffer = item.get(key).getB();
+                byte[] b = new byte[buffer.remaining()];
+                buffer.get(b);
+                outputRowData[fieldId] = b;
+              } else {
+                // UH OH!!! Unknown type
+              }
+            }
+          } // end keyset for
+          for (Map.Entry<String,AttributeValue> entry : item.entrySet()) {
+            String entryName = entry.getKey();
+            AttributeValue value = entry.getValue();
+            logRowlevel("Entry '" + entry + "' has value: " + value);
+          }
+
+          // put row
+          try {
+            putRow(data.outputRowMeta, outputRowData);
+          } catch (KettleStepException kse) {
+            logError(BaseMessages.getString(PKG, "DynamoDBInput.Log.ExceptionPuttingRow"), kse);
+          }
+
+        }
+        lastKeyEvaluated = result.getLastEvaluatedKey();
+      } while (lastKeyEvaluated != null);
+
 /*
       data.dmm = data.client.newDataMovementManager();
 

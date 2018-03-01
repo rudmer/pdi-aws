@@ -30,6 +30,8 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 
+import java.util.Hashtable;
+
 /**
  * Runtime transient data container for the PDI BigQuery stream step
  * 
@@ -52,6 +54,8 @@ public class DynamoDBOutputData extends BaseStepData implements StepDataInterfac
   public int recordsInBatch = 0;
   public int maxRecordsPerBatch = 25; // TODO set this from somewhere else, not hardcoded - 25 max for AWS DynamoDB batch write
   public String lastTableName = "";
+
+  public Hashtable<String,String> fieldTypes = new Hashtable<String,String>();
  
   /**
    * Default constructor

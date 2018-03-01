@@ -46,12 +46,12 @@ import com.amazonaws.services.dynamodbv2.document.DynamoDB;
  */
 public class DynamoDBConnectionFactory implements DatabaseFactoryInterface {
 
-  public static DynamoDB create( String host, int port, String awsRegion, AWSAuthScheme authScheme, AWSDeploymentType deployment, String username, String password, String databaseName) throws Exception {
+  public static AmazonDynamoDB create( String host, int port, String awsRegion, AWSAuthScheme authScheme, AWSDeploymentType deployment, String username, String password, String databaseName) throws Exception {
     AmazonDynamoDBClientBuilder builder = AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
       new AwsClientBuilder.EndpointConfiguration("https://" + host + ":" + port, awsRegion));
     builder.setCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(username,password)));
     AmazonDynamoDB client = builder.build(); // TODO check whether this should be https
-    return new DynamoDB(client); // TODO specify default database
+    return client; // TODO specify default database
   }
 
   /**

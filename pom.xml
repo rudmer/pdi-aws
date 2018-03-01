@@ -4,7 +4,7 @@
 
   <groupId>org.itfactory.kettle</groupId>
   <artifactId>aws-plugins</artifactId>
-  <version>0.0.4</version>
+  <version>0.0.5</version>
   <packaging>jar</packaging>
 
   <name>aws-plugins</name>

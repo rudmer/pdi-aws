@@ -55,7 +55,7 @@ import org.pentaho.metastore.api.IMetaStore;
 
 import org.w3c.dom.Node;
 
-@Step(id = "DynamoDBInput", image = "DynamoDB_input.svg", i18nPackageName = "org.pentaho.kettle.steps.aws.dynamodb.DynamoDBInput", name = "DynamoDBInput.Name", description = "DynamoDBInput.Description", categoryDescription = "BaseStep.Category.BigData")
+@Step(id = "DynamoDBInput", image = "DynamoDBScanInput.png", i18nPackageName = "org.pentaho.kettle.steps.aws.dynamodb.DynamoDBInput", name = "DynamoDBInput.Name", description = "DynamoDBInput.Description", categoryDescription = "BaseStep.Category.BigData")
 /**
  * Metadata (configuration) holding class for the DynamoDB input step
  * 

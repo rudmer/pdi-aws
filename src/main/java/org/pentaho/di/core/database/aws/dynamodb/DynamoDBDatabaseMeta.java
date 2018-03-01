@@ -34,7 +34,7 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.wizard.WizardPageFactory;
 import org.pentaho.di.ui.core.database.wizard.CreateDatabaseWizardPageDynamoDB;
 
-import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 
 /**
  * Contains AWS DynamoDB specific connection configuration.
@@ -228,7 +228,7 @@ public class DynamoDBDatabaseMeta extends BaseDatabaseMeta implements DatabaseIn
     return (String) getAttributes().get(ATTRIBUTE_PASSWORD);
   }*/
 
-  public DynamoDB getConnection() throws Exception {
+  public AmazonDynamoDB getConnection() throws Exception {
     return DynamoDBConnectionFactory.create(getHostname(), Integer.parseInt(getDatabasePortNumberString()),
       getRegion(),getAuthScheme(),getDeployment(),
       getUsername(),getPassword(),getDatabaseName());
