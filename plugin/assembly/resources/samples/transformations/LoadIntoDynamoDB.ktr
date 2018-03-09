@@ -438,7 +438,7 @@
       <note>Generates 1000 items and adds them to an existing AWS DynamoDB table.
 Note: Will generate errors if you run often using the Free Tier of DynamoDB due to Write Capacity Unit limits.</note>
       <xloc>48</xloc>
-      <yloc>128</yloc>
+      <yloc>144</yloc>
       <width>732</width>
       <heigth>50</heigth>
       <fontname>Segoe UI</fontname>
@@ -524,7 +524,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
     </remotesteps>
     <GUI>
       <xloc>768</xloc>
-      <yloc>32</yloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -558,7 +558,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
     </remotesteps>
     <GUI>
       <xloc>192</xloc>
-      <yloc>32</yloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -590,7 +590,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
     </remotesteps>
     <GUI>
       <xloc>400</xloc>
-      <yloc>32</yloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -655,7 +655,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
         <set_empty_string>N</set_empty_string>
       </field>
     </fields>
-    <limit>1000</limit>
+    <limit>100</limit>
     <never_ending>N</never_ending>
     <interval_in_ms>5000</interval_in_ms>
     <row_time_field>now</row_time_field>
@@ -669,7 +669,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
     </remotesteps>
     <GUI>
       <xloc>48</xloc>
-      <yloc>32</yloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -708,7 +708,7 @@ Note: Will generate errors if you run often using the Free Tier of DynamoDB due 
     </remotesteps>
     <GUI>
       <xloc>576</xloc>
-      <yloc>32</yloc>
+      <yloc>48</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
