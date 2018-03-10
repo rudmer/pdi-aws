@@ -15,7 +15,7 @@ Easiest way is to download the binary release.
 - Fetch the latest release from here: https://github.com/Pentaho-SE-EMEA-APAC/pdi-aws/releases 
 - Unzip the zip file
 - Take the 'pdi-aws' folder and drop in to PENTAHO_HOME/design-tools/data-integration/plugins
-- Download the AWS DynamoDB Java SDK zip file from here: https://github.com/Pentaho-SE-EMEA-APAC/pdi-aws/releases
+- Download the AWS DynamoDB Java SDK zip file from here: https://aws.amazon.com/sdk-for-java/
 - Extract the contents of the zip file
 - Copy the lib/*.jar files - to the plugins/pdi-aws/lib folder (create this subfolder if it does not exist)
 - Restart PDI/Spoon
