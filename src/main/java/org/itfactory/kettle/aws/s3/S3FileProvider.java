@@ -28,6 +28,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
@@ -48,6 +49,7 @@ import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * VFS FileProvider implementation for S3
@@ -112,24 +114,32 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
 
     AmazonS3 s3client;
     AmazonS3Builder builder;
-    Regions region = configBuilder.getRegion( fileSystemOptions ).get();
+    Optional<Regions> region = configBuilder.getRegion( fileSystemOptions );
+    Optional<String> endpoint = configBuilder.getEndpoint( fileSystemOptions );
 
     // specific settings for the client
     switch ( s3EncryptionMethod ) {
       case NONE:
       case SERVER_SIDE:
         builder = AmazonS3ClientBuilder
-          .standard()
-          .withRegion( region );
+          .standard();
         break;
       case CLIENT_SIDE:
-        builder = AmazonS3EncryptionClientBuilder
-          .standard()
-          .withRegion( region )
-          .withKmsClient( AWSKMSClientBuilder.standard().withRegion( region ).build() )
-          .withCryptoConfiguration( new CryptoConfiguration( CryptoMode.AuthenticatedEncryption ) )
-          .withEncryptionMaterials(
-            new KMSEncryptionMaterialsProvider( configBuilder.getKmsKeyAlias( fileSystemOptions ).get() ) );
+        if(region.isPresent()) {
+          builder = AmazonS3EncryptionClientBuilder
+            .standard()
+            .withKmsClient( AWSKMSClientBuilder.standard().withRegion( region.get() ).build() )
+            .withCryptoConfiguration( new CryptoConfiguration( CryptoMode.AuthenticatedEncryption ) )
+            .withEncryptionMaterials(
+              new KMSEncryptionMaterialsProvider( configBuilder.getKmsKeyAlias( fileSystemOptions ).get() ) );
+        } else {
+          builder = AmazonS3EncryptionClientBuilder
+            .standard()
+            .withKmsClient( AWSKMSClientBuilder.defaultClient() )
+            .withCryptoConfiguration( new CryptoConfiguration( CryptoMode.AuthenticatedEncryption ) )
+            .withEncryptionMaterials(
+              new KMSEncryptionMaterialsProvider( configBuilder.getKmsKeyAlias( fileSystemOptions ).get() ) );
+        }
         break;
 
       default:
@@ -139,6 +149,15 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
     }
 
     // global settings for the client
+    if(region.isPresent())
+      builder.withRegion( region.get() );
+
+    if(endpoint.isPresent())
+      builder.withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint.get(), null ) );
+
+    if(!region.isPresent() && !endpoint.isPresent())
+      builder.withRegion( Regions.DEFAULT_REGION );
+
     builder.withCredentials( awsCredentialsProvider );
     builder.withForceGlobalBucketAccessEnabled( true );
 

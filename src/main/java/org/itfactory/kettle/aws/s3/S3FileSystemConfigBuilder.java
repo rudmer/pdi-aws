@@ -29,6 +29,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
@@ -74,9 +75,9 @@ public class S3FileSystemConfigBuilder extends FileSystemConfigBuilder {
   }
 
   public Optional<Regions> getRegion( FileSystemOptions opts ) {
-    String r = getString( opts, REGION, Regions.DEFAULT_REGION.getName() );
+    String r = getString( opts, REGION );
 
-    return of( Regions.fromName( r ) );
+    return r == null ? empty() : of( Regions.fromName( r ) );
   }
 
   public void setRegion( FileSystemOptions opts, String region ) {
