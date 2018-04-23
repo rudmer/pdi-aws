@@ -4,7 +4,7 @@
 
   <groupId>org.itfactory.kettle</groupId>
   <artifactId>aws-plugins</artifactId>
-  <version>0.0.6</version>
+  <version>0.0.7</version>
   <packaging>jar</packaging>
 
   <name>aws-plugins</name>
@@ -12,7 +12,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <pentaho.kettle.version>8.0-SNAPSHOT</pentaho.kettle.version>
+    <pentaho.kettle.version>8.0.0.3-195</pentaho.kettle.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
@@ -50,7 +50,7 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-bom</artifactId>
-      <version>1.11.106</version>
+      <version>1.11.269</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
