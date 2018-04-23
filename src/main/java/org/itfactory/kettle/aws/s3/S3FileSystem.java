@@ -58,7 +58,7 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
   }
 
   @Override protected void doCloseCommunicationLink() {
-    // No such method - this.s3.shutdown();
+    s3.shutdown();
   }
 
   public AmazonS3 getS3() {
