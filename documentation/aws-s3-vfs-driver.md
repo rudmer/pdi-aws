@@ -21,7 +21,7 @@ region | region to connect to | Regions.DEFAULT_REGION
 accessKeyId | an explicit reference to the S3 access key | N/A 
 secretAccessKey | an explicit reference to the S3 secret key | N/A
 encryptionMethod | One of: NONE, CLIENT_SIDE, SERVER_SIDE | NONE
-kms.keyAlias | the name of an AWS KMS key to use for encryption | N/A
+kmsKeyAlias | the name of an AWS KMS key to use for encryption | N/A
 
 #### Using the filesystem options via PDI
 
@@ -32,7 +32,7 @@ vfs.s3sdk.region=
 vfs.s3sdk.accessKeyId=
 vfs.s3sdk.secretAccessKey=
 vfs.s3sdk.encryptionMethod=
-vfs.s3sdk.kms.keyAlias=
+vfs.s3sdk.kmsKeyAlias=
 ```
 
 ### Authentication

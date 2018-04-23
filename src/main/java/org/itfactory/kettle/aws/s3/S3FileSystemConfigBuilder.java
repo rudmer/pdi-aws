@@ -46,7 +46,7 @@ public class S3FileSystemConfigBuilder extends FileSystemConfigBuilder {
   private static final String ACCESS_KEY_ID = "accessKeyId";
   private static final String SECRET_ACCESS_KEY = "secretAccessKey";
   private static final String ENCRYPTION_METHOD = "encryptionMethod";
-  private static final String KMS_KEY_ALIAS = "kms.keyAlias";
+  private static final String KMS_KEY_ALIAS = "kmsKeyAlias";
 
   private static final S3FileSystemConfigBuilder BUILDER = new S3FileSystemConfigBuilder();
 
