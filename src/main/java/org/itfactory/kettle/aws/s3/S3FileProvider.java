@@ -116,6 +116,7 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
     AmazonS3Builder builder;
     Optional<Regions> region = configBuilder.getRegion( fileSystemOptions );
     Optional<String> endpoint = configBuilder.getEndpoint( fileSystemOptions );
+    Optional<String> kmsKeyAlias = configBuilder.getKmsKeyAlias( fileSystemOptions );
 
     // specific settings for the client
     switch ( s3EncryptionMethod ) {
@@ -125,21 +126,24 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
           .standard();
         break;
       case CLIENT_SIDE:
-        if(region.isPresent()) {
-          builder = AmazonS3EncryptionClientBuilder
-            .standard()
-            .withKmsClient( AWSKMSClientBuilder.standard().withRegion( region.get() ).build() )
-            .withCryptoConfiguration( new CryptoConfiguration( CryptoMode.AuthenticatedEncryption ) )
-            .withEncryptionMaterials(
-              new KMSEncryptionMaterialsProvider( configBuilder.getKmsKeyAlias( fileSystemOptions ).get() ) );
+        builder = AmazonS3EncryptionClientBuilder.standard();
+        ( (AmazonS3EncryptionClientBuilder) builder )
+          .withCryptoConfiguration( new CryptoConfiguration( CryptoMode.AuthenticatedEncryption ) );
+
+        if ( kmsKeyAlias.isPresent() ) {
+          ( (AmazonS3EncryptionClientBuilder) builder ).withEncryptionMaterials(
+            new KMSEncryptionMaterialsProvider( kmsKeyAlias.get() ) );
         } else {
-          builder = AmazonS3EncryptionClientBuilder
-            .standard()
-            .withKmsClient( AWSKMSClientBuilder.defaultClient() )
-            .withCryptoConfiguration( new CryptoConfiguration( CryptoMode.AuthenticatedEncryption ) )
-            .withEncryptionMaterials(
-              new KMSEncryptionMaterialsProvider( configBuilder.getKmsKeyAlias( fileSystemOptions ).get() ) );
+          throw new FileSystemException( "Cannot use client side encryption without specifying the KMS key alias." );
         }
+
+        AWSKMSClientBuilder awskmsClientBuilder = AWSKMSClientBuilder.standard();
+        awskmsClientBuilder.withCredentials( awsCredentialsProvider );
+
+        awskmsClientBuilder.withRegion( region.orElse( Regions.DEFAULT_REGION ) );
+
+        ( (AmazonS3EncryptionClientBuilder) builder ).withKmsClient( awskmsClientBuilder.build() );
+
         break;
 
       default:
@@ -149,14 +153,12 @@ public class S3FileProvider extends AbstractOriginatingFileProvider {
     }
 
     // global settings for the client
-    if(region.isPresent())
-      builder.withRegion( region.get() );
+    region.ifPresent( builder::withRegion );
+    endpoint.ifPresent( e -> builder.withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration(e, null) ) );
 
-    if(endpoint.isPresent())
-      builder.withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint.get(), null ) );
-
-    if(!region.isPresent() && !endpoint.isPresent())
+    if ( !region.isPresent() && !endpoint.isPresent() ) {
       builder.withRegion( Regions.DEFAULT_REGION );
+    }
 
     builder.withCredentials( awsCredentialsProvider );
     builder.withForceGlobalBucketAccessEnabled( true );
